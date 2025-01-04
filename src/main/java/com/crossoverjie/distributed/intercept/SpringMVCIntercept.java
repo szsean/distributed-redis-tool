@@ -6,6 +6,7 @@ import com.crossoverjie.distributed.limit.RedisLimit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
@@ -21,9 +22,10 @@ import java.io.IOException;
  * @since JDK 1.8
  */
 
+@Component
 public class SpringMVCIntercept extends HandlerInterceptorAdapter {
 
-    private static Logger logger = LoggerFactory.getLogger(SpringMVCIntercept.class);
+    private static final Logger logger = LoggerFactory.getLogger(SpringMVCIntercept.class);
 
     @Autowired
     private RedisLimit redisLimit;

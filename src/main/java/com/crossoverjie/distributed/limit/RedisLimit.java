@@ -1,16 +1,16 @@
 package com.crossoverjie.distributed.limit;
 
 import com.crossoverjie.distributed.constant.RedisToolsConstant;
-import com.crossoverjie.distributed.intercept.SpringMVCIntercept;
 import com.crossoverjie.distributed.util.ScriptUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.connection.RedisClusterConnection;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisCluster;
-import redis.clients.jedis.JedisPool;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -19,16 +19,14 @@ import java.util.Collections;
  * Function: limit util
  *
  * @author crossoverJie
- *         Date: 22/04/2018 15:54
+ * Date: 22/04/2018 15:54
  * @since JDK 1.8
  */
 public class RedisLimit {
 
-    private static Logger logger = LoggerFactory.getLogger(RedisLimit.class);
-
-
-    private JedisConnectionFactory jedisConnectionFactory;
-    private int type ;
+    private static final Logger logger = LoggerFactory.getLogger(RedisLimit.class);
+    private final JedisConnectionFactory jedisConnectionFactory;
+    private final int type;
     private int limit = 200;
 
     private static final int FAIL_CODE = 0;
@@ -39,15 +37,16 @@ public class RedisLimit {
     private String script;
 
     private RedisLimit(Builder builder) {
-        this.limit = builder.limit ;
+        this.limit = builder.limit;
         this.jedisConnectionFactory = builder.jedisConnectionFactory;
-        this.type = builder.type ;
+        this.type = builder.type;
         buildScript();
     }
 
 
     /**
      * limit traffic
+     *
      * @return if true
      */
     public boolean limit() {
@@ -57,25 +56,21 @@ public class RedisLimit {
 
         Object result = limitRequest(connection);
 
-        if (FAIL_CODE != (Long) result) {
-            return true;
-        } else {
-            return false;
-        }
+        return FAIL_CODE != (int) result;
     }
 
     private Object limitRequest(Object connection) {
-        Object result = null;
+        Object result;
         String key = String.valueOf(System.currentTimeMillis() / 1000);
-        if (connection instanceof Jedis){
-            result = ((Jedis)connection).eval(script, Collections.singletonList(key), Collections.singletonList(String.valueOf(limit)));
+        if (connection instanceof Jedis) {
+            result = ((Jedis) connection).eval(script, Collections.singletonList(key), Collections.singletonList(String.valueOf(limit)));
             ((Jedis) connection).close();
-        }else {
+        } else {
             result = ((JedisCluster) connection).eval(script, Collections.singletonList(key), Collections.singletonList(String.valueOf(limit)));
             try {
                 ((JedisCluster) connection).close();
             } catch (IOException e) {
-                logger.error("IOException",e);
+                logger.error("IOException", e);
             }
         }
         return result;
@@ -83,18 +78,15 @@ public class RedisLimit {
 
     /**
      * get Redis connection
-     * @return
      */
     private Object getConnection() {
-        Object connection ;
-        if (type == RedisToolsConstant.SINGLE){
+        if (type == RedisToolsConstant.SINGLE) {
             RedisConnection redisConnection = jedisConnectionFactory.getConnection();
-            connection = redisConnection.getNativeConnection();
-        }else {
+            return redisConnection.getNativeConnection();
+        } else {
             RedisClusterConnection clusterConnection = jedisConnectionFactory.getClusterConnection();
-            connection = clusterConnection.getNativeConnection() ;
+            return clusterConnection.getNativeConnection();
         }
-        return connection;
     }
 
 
@@ -107,27 +99,27 @@ public class RedisLimit {
 
 
     /**
-     *  the builder
+     * the builder
      */
-    public static class Builder{
-        private JedisConnectionFactory jedisConnectionFactory = null ;
+    public static class Builder {
+        private JedisConnectionFactory jedisConnectionFactory = null;
 
         private int limit = 200;
-        private int type ;
+        private final int type;
 
 
-        public Builder(JedisConnectionFactory jedisConnectionFactory,int type){
+        public Builder(JedisConnectionFactory jedisConnectionFactory, int type) {
             this.jedisConnectionFactory = jedisConnectionFactory;
-            this.type = type ;
+            this.type = type;
         }
 
-        public Builder limit(int limit){
-            this.limit = limit ;
+        public Builder limit(int limit) {
+            this.limit = limit;
             return this;
         }
 
-        public RedisLimit build(){
-            return new RedisLimit(this) ;
+        public RedisLimit build() {
+            return new RedisLimit(this);
         }
 
     }

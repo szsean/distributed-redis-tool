@@ -31,9 +31,9 @@ public class CommonAspectTest {
             boolean limit = redisLimit.limit();
             System.out.println(limit);
             assertTrue(limit);
-            Mockito.verify(redisLimit,Mockito.times(2)).limit();
+            Mockito.verify(redisLimit, Mockito.times(2)).limit();
 
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         }
     }
 
@@ -42,8 +42,6 @@ public class CommonAspectTest {
         try {
             Mockito.when(redisLimit.limit()).thenReturn(false);
             commonAspect.before(null);
-
-
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
@@ -51,7 +49,7 @@ public class CommonAspectTest {
         boolean limit = redisLimit.limit();
         System.out.println(limit);
         assertFalse(limit);
-        Mockito.verify(redisLimit,Mockito.times(2)).limit();
+        Mockito.verify(redisLimit, Mockito.times(2)).limit();
     }
 
 }

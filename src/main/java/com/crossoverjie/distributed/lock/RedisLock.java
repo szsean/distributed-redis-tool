@@ -16,11 +16,11 @@ import java.util.Collections;
  * Function: distributed lock
  *
  * @author crossoverJie
- *         Date: 26/03/2018 11:09
+ * Date: 26/03/2018 11:09
  * @since JDK 1.8
  */
 public class RedisLock {
-    private static Logger logger = LoggerFactory.getLogger(RedisLock.class);
+    private static final Logger logger = LoggerFactory.getLogger(RedisLock.class);
 
     private static final String LOCK_MSG = "OK";
 
@@ -30,12 +30,12 @@ public class RedisLock {
     private static final String SET_WITH_EXPIRE_TIME = "PX";
 
 
-    private String lockPrefix;
+    private final String lockPrefix;
 
-    private int sleepTime;
+    private final int sleepTime;
 
-    private JedisConnectionFactory jedisConnectionFactory;
-    private int type ;
+    private final JedisConnectionFactory jedisConnectionFactory;
+    private final int type;
 
     /**
      * time millisecond
@@ -49,7 +49,7 @@ public class RedisLock {
 
     private RedisLock(Builder builder) {
         this.jedisConnectionFactory = builder.jedisConnectionFactory;
-        this.type = builder.type ;
+        this.type = builder.type;
         this.lockPrefix = builder.lockPrefix;
         this.sleepTime = builder.sleepTime;
 
@@ -59,16 +59,16 @@ public class RedisLock {
 
     /**
      * get Redis connection
-     * @return
+     *
      */
     private Object getConnection() {
-        Object connection ;
-        if (type == RedisToolsConstant.SINGLE){
+        Object connection;
+        if (type == RedisToolsConstant.SINGLE) {
             RedisConnection redisConnection = jedisConnectionFactory.getConnection();
             connection = redisConnection.getNativeConnection();
-        }else {
+        } else {
             RedisClusterConnection clusterConnection = jedisConnectionFactory.getClusterConnection();
-            connection = clusterConnection.getNativeConnection() ;
+            connection = clusterConnection.getNativeConnection();
         }
         return connection;
     }
@@ -82,7 +82,7 @@ public class RedisLock {
      * false lock fail
      */
     public boolean tryLock(String key, String request) {
-        return tryLock(key,request,10*TIME);
+        return tryLock(key, request, 10 * TIME);
     }
 
     /**
@@ -94,16 +94,9 @@ public class RedisLock {
     public void lock(String key, String request) throws InterruptedException {
         //get connection
         Object connection = getConnection();
-        String result ;
-        for (; ;) {
-            if (connection instanceof Jedis){
-                result = ((Jedis)connection).set(lockPrefix + key, request, SET_IF_NOT_EXIST, SET_WITH_EXPIRE_TIME, 10 * TIME);
-                if (LOCK_MSG.equals(result)){
-                    ((Jedis) connection).close();
-                }
-            }else {
-                result = ((JedisCluster)connection).set(lockPrefix + key, request, SET_IF_NOT_EXIST, SET_WITH_EXPIRE_TIME, 10 * TIME);
-            }
+        String result;
+        for (; ; ) {
+            result = getLockString(key, request, connection);
 
             if (LOCK_MSG.equals(result)) {
                 break;
@@ -120,23 +113,15 @@ public class RedisLock {
      * @param key
      * @param request
      * @param blockTime custom time
-     * @return
      * @throws InterruptedException
      */
     public boolean lock(String key, String request, int blockTime) throws InterruptedException {
 
         //get connection
         Object connection = getConnection();
-        String result ;
+        String result;
         while (blockTime >= 0) {
-            if (connection instanceof Jedis){
-                result = ((Jedis) connection).set(lockPrefix + key, request, SET_IF_NOT_EXIST, SET_WITH_EXPIRE_TIME, 10 * TIME) ;
-                if (LOCK_MSG.equals(result)){
-                    ((Jedis) connection).close();
-                }
-            }else {
-                result = ((JedisCluster) connection).set(lockPrefix + key, request, SET_IF_NOT_EXIST, SET_WITH_EXPIRE_TIME, 10 * TIME) ;
-            }
+            result = getLockString(key, request, connection);
             if (LOCK_MSG.equals(result)) {
                 return true;
             }
@@ -145,6 +130,19 @@ public class RedisLock {
             Thread.sleep(sleepTime);
         }
         return false;
+    }
+
+    private String getLockString(String key, String request, Object connection) {
+        String result;
+        if (connection instanceof Jedis) {
+            result = ((Jedis) connection).set(lockPrefix + key, request, SET_IF_NOT_EXIST, SET_WITH_EXPIRE_TIME, 10 * TIME);
+            if (LOCK_MSG.equals(result)) {
+                ((Jedis) connection).close();
+            }
+        } else {
+            result = ((JedisCluster) connection).set(lockPrefix + key, request, SET_IF_NOT_EXIST, SET_WITH_EXPIRE_TIME, 10 * TIME);
+        }
+        return result;
     }
 
 
@@ -160,20 +158,16 @@ public class RedisLock {
     public boolean tryLock(String key, String request, int expireTime) {
         //get connection
         Object connection = getConnection();
-        String result ;
+        String result;
 
-        if (connection instanceof Jedis){
+        if (connection instanceof Jedis) {
             result = ((Jedis) connection).set(lockPrefix + key, request, SET_IF_NOT_EXIST, SET_WITH_EXPIRE_TIME, expireTime);
             ((Jedis) connection).close();
-        }else {
+        } else {
             result = ((JedisCluster) connection).set(lockPrefix + key, request, SET_IF_NOT_EXIST, SET_WITH_EXPIRE_TIME, expireTime);
         }
 
-        if (LOCK_MSG.equals(result)) {
-            return true;
-        } else {
-            return false;
-        }
+        return LOCK_MSG.equals(result);
     }
 
 
@@ -202,11 +196,7 @@ public class RedisLock {
             return false;
         }
 
-        if (UNLOCK_MSG.equals(result)) {
-            return true;
-        } else {
-            return false;
-        }
+        return UNLOCK_MSG.equals(result);
     }
 
 
@@ -225,9 +215,9 @@ public class RedisLock {
          */
         private static final int DEFAULT_SLEEP_TIME = 100;
 
-        private JedisConnectionFactory jedisConnectionFactory = null ;
+        private JedisConnectionFactory jedisConnectionFactory = null;
 
-        private int type ;
+        private final int type;
 
         private String lockPrefix = DEFAULT_LOCK_PREFIX;
         private int sleepTime = DEFAULT_SLEEP_TIME;

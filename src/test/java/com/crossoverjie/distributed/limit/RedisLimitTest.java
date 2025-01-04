@@ -16,7 +16,7 @@ import java.util.concurrent.*;
 
 public class RedisLimitTest {
 
-    private static Logger logger = LoggerFactory.getLogger(RedisLimitTest.class);
+    private static final Logger logger = LoggerFactory.getLogger(RedisLimitTest.class);
     private static ExecutorService executorServicePool;
 
 
@@ -39,7 +39,6 @@ public class RedisLimitTest {
             logger.info("worker running");
         }
         logger.info("worker over");
-
     }
 
     @Before
@@ -57,10 +56,10 @@ public class RedisLimitTest {
         config.setTestOnBorrow(true);
         config.setTestOnReturn(true);
 
-        RedisClusterConfiguration redisClusterConfiguration = new RedisClusterConfiguration() ;
-        redisClusterConfiguration.addClusterNode(new RedisNode("10.19.13.51",7000));
+        RedisClusterConfiguration redisClusterConfiguration = new RedisClusterConfiguration();
+        redisClusterConfiguration.addClusterNode(new RedisNode("10.19.13.51", 7000));
 
-        JedisConnectionFactory jedisConnectionFactory = new JedisConnectionFactory(config) ;
+        JedisConnectionFactory jedisConnectionFactory = new JedisConnectionFactory(config);
         jedisConnectionFactory.setHostName("47.98.194.60");
         jedisConnectionFactory.setPort(6379);
         jedisConnectionFactory.setPassword("");
@@ -89,7 +88,7 @@ public class RedisLimitTest {
 
     private static class Worker implements Runnable {
 
-        private int index;
+        private final int index;
 
         public Worker(int index) {
             this.index = index;

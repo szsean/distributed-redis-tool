@@ -27,7 +27,7 @@ import javax.servlet.http.HttpServletResponse;
 @Component
 public class WebIntercept extends WebMvcConfigurerAdapter {
 
-    private static Logger logger = LoggerFactory.getLogger(WebIntercept.class);
+    private static final Logger logger = LoggerFactory.getLogger(WebIntercept.class);
 
 
     @Autowired

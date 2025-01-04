@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 @EnableAspectJAutoProxy(proxyTargetClass = true)
 public class CommonAspect {
 
-    private static Logger logger = LoggerFactory.getLogger(CommonAspect.class);
+    private static final Logger logger = LoggerFactory.getLogger(CommonAspect.class);
 
     @Autowired
     private RedisLimit redisLimit ;
