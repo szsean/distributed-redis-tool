@@ -56,7 +56,7 @@ public class RedisLimit {
 
         Object result = limitRequest(connection);
 
-        return FAIL_CODE != (int) result;
+        return FAIL_CODE != (long) result; //result 为 0 表示被限流，即返回false，未达到上限不被限流则返回true
     }
 
     private Object limitRequest(Object connection) {
@@ -102,7 +102,7 @@ public class RedisLimit {
      * the builder
      */
     public static class Builder {
-        private JedisConnectionFactory jedisConnectionFactory = null;
+        private final JedisConnectionFactory jedisConnectionFactory;
 
         private int limit = 200;
         private final int type;
