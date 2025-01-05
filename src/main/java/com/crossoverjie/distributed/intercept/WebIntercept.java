@@ -64,7 +64,6 @@ public class WebIntercept extends WebMvcConfigurerAdapter {
                     response.sendError(annotation.errorCode(), "request limited");
                     return false;
                 }
-
             }
 
             return true;

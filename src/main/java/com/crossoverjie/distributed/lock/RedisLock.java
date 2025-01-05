@@ -29,7 +29,6 @@ public class RedisLock {
     private static final String SET_IF_NOT_EXIST = "NX";
     private static final String SET_WITH_EXPIRE_TIME = "PX";
 
-
     private final String lockPrefix;
 
     private final int sleepTime;
@@ -56,33 +55,17 @@ public class RedisLock {
         buildScript();
     }
 
-
     /**
      * get Redis connection
-     *
      */
     private Object getConnection() {
-        Object connection;
         if (type == RedisToolsConstant.SINGLE) {
             RedisConnection redisConnection = jedisConnectionFactory.getConnection();
-            connection = redisConnection.getNativeConnection();
+            return redisConnection.getNativeConnection();
         } else {
             RedisClusterConnection clusterConnection = jedisConnectionFactory.getClusterConnection();
-            connection = clusterConnection.getNativeConnection();
+            return clusterConnection.getNativeConnection();
         }
-        return connection;
-    }
-
-    /**
-     * Non-blocking lock, default timeout :10s
-     *
-     * @param key     lock business type
-     * @param request value
-     * @return true lock success
-     * false lock fail
-     */
-    public boolean tryLock(String key, String request) {
-        return tryLock(key, request, 10 * TIME);
     }
 
     /**
@@ -145,6 +128,17 @@ public class RedisLock {
         return result;
     }
 
+    /**
+     * Non-blocking lock, default timeout :10s
+     *
+     * @param key     lock business type
+     * @param request value
+     * @return true lock success
+     * false lock fail
+     */
+    public boolean tryLock(String key, String request) {
+        return tryLock(key, request, 10 * TIME);
+    }
 
     /**
      * Non-blocking lock
@@ -184,7 +178,7 @@ public class RedisLock {
         Object connection = getConnection();
         //lua script
 
-        Object result = null;
+        Object result;
         if (connection instanceof Jedis) {
             result = ((Jedis) connection).eval(script, Collections.singletonList(lockPrefix + key), Collections.singletonList(request));
             ((Jedis) connection).close();
@@ -199,14 +193,12 @@ public class RedisLock {
         return UNLOCK_MSG.equals(result);
     }
 
-
     /**
      * read lua script
      */
     private void buildScript() {
         script = ScriptUtil.getScript("lock.lua");
     }
-
 
     public static class Builder {
         private static final String DEFAULT_LOCK_PREFIX = "lock_";
@@ -215,7 +207,7 @@ public class RedisLock {
          */
         private static final int DEFAULT_SLEEP_TIME = 100;
 
-        private JedisConnectionFactory jedisConnectionFactory = null;
+        private final JedisConnectionFactory jedisConnectionFactory;
 
         private final int type;
 

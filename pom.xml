@@ -26,7 +26,6 @@
     </properties>
 
 
-
     <issueManagement>
         <system>github</system>
         <url>https://github.com/crossoverJie/distributed-redis-tool/issues</url>
@@ -112,7 +111,6 @@
         </dependency>
 
 
-
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-aop</artifactId>
@@ -161,7 +159,7 @@
             <scope>provided</scope>
         </dependency>
 
-<!--        使用spring内置的1.8.6版本会报错-->
+        <!--jdk22时使用spring-aspects:4.2.1内置的1.8.6版本会报错-->
         <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjweaver</artifactId>

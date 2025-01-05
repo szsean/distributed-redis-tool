@@ -130,9 +130,10 @@ public class RealRedisLockTest {
             try {
                 redisLock.lock("abc", "12345");
                 logger.info("加锁成功=========");
-                redisLock.unlock("abc","12345") ;
+                boolean unlock = redisLock.unlock("abc","12345") ;
+                logger.info("解锁结果===[{}]",unlock);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                logger.error("Exception occurred when lock or unlock", e);
             }
 
 

@@ -1,6 +1,5 @@
 package com.crossoverjie.distributed.intercept;
 
-import com.crossoverjie.distributed.annotation.ControllerLimit;
 import com.crossoverjie.distributed.annotation.SpringControllerLimit;
 import com.crossoverjie.distributed.limit.RedisLimit;
 import org.slf4j.Logger;
@@ -12,7 +11,6 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
 /**
  * Function:
@@ -52,7 +50,6 @@ public class SpringMVCIntercept extends HandlerInterceptorAdapter {
                 response.sendError(annotation.errorCode(), annotation.errorMsg());
                 return false;
             }
-
         }
 
         return true;

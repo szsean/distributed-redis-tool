@@ -41,7 +41,7 @@ public class RedisLimitJedisClusterJunitTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void limit() {
+    public void limitFalse() {
         RedisClusterConnection clusterConnection = new JedisClusterConnection(jedisCluster);
         Mockito.when(jedisConnectionFactory.getClusterConnection()).thenReturn(clusterConnection);
 
